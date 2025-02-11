@@ -1,4 +1,4 @@
-# python-devd-template
+# devd-template-python
 
 _*CHANGE THE TITLE*_
 
@@ -9,4 +9,5 @@ _*CHANGE THE TITLE*_
 make setup
 . venv/bin/activate
 . .env
+python -m devd.main foo bar
 ```
