@@ -49,9 +49,10 @@ test:
 	$(venv) coverage report | tee coverage/coverage.txt
 	$(venv) coverage html --directory coverage/html
 
-find_test_data = $(shell find '$(TEST_DIR)' -name '*__$(1).py' | sort)
-TEST_DATA_ACTUAL := $(call find_test_data,actual)
-TEST_DATA_EXPECT := $(call find_test_data,expect)
+find_test_data__py = $(shell find '$(TEST_DIR)' -name '*__$(1).py' | sort)
+find_test_data_out = $(shell find '$(TEST_DIR)' -name '*.out.$(1)' | sort)
+TEST_DATA_ACTUAL := $(call find_test_data__py,actual) $(call find_test_data_out,actual)
+TEST_DATA_EXPECT := $(call find_test_data__py,expect) $(call find_test_data_out,expect)
 TEST_DATA := $(TEST_DATA_ACTUAL) $(TEST_DATA_EXPECT)
 test-data: clean-test-data-actual
 	$(MAKE) test; $(MAKE) test
