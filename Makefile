@@ -33,7 +33,7 @@ venv:
 	python$(PYTHON_VERSION) -m venv venv
 
 deps:
-	$(venv) echo pip install $(foreach f,$(REQUIREMENTS_TXT),-r $(f) )
+	$(venv) pip install $(foreach f,$(REQUIREMENTS_TXT),-r $(f) )
 REQUIREMENTS_TXT=$(wildcard *requirements*.txt)
 
 pre-commit-install:

@@ -7,4 +7,6 @@ _*CHANGE THE TITLE*_
 ```bash
 # Change PYTHON_VERSION in `.env` and `Makefile`
 make setup
+. venv/bin/activate
+. .env
 ```
