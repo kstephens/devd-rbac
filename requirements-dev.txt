@@ -3,6 +3,7 @@
 asgiref==3.8.1
 autopep8==2.0.4
 black==24.10.0
+codespell==2.4.1
 cryptography==43.0.3
 fastapi[standard]==0.115.8
 gnureadline==8.1.2
