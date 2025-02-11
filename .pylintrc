@@ -1,0 +1,35 @@
+[MAIN]
+disable=
+    C0114, # missing-module-docstring
+    C0116, # missing-function-docstring
+    R0801, # duplicate-code
+    too-many-instance-attributes,
+    too-many-return-statements,
+    too-many-branches,
+    missing-class-docstring,
+    too-many-public-methods,
+    broad-exception-raised,
+    too-few-public-methods,
+
+[BASIC]
+good-names=i, j, k, ex, Run, _
+
+[CLASSES]
+[DESIGN]
+[EXCEPTIONS]
+[FORMAT]
+indent-string='    '
+max-line-length=170
+
+[IMPORTS]
+[LOGGING]
+[MESSAGES CONTROL]
+[METHOD_ARGS]
+[MISCELLANEOUS]
+[REFACTORING]
+[REPORTS]
+[SIMILARITIES]
+[SPELLING]
+[STRING]
+[TYPECHECK]
+[VARIABLES]
