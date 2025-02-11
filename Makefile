@@ -33,7 +33,8 @@ venv:
 	python$(PYTHON_VERSION) -m venv venv
 
 deps:
-	$(venv) pip install -r requirements.txt -r requirements-dev.txt
+	$(venv) echo pip install $(foreach f,$(REQUIREMENTS_TXT),-r $(f) )
+REQUIREMENTS_TXT=$(wildcard *requirements*.txt)
 
 pre-commit-install:
 	$(venv) pre-commit install
@@ -94,6 +95,13 @@ clean-test-data-expect:
 
 very-clean: clean
 	rm -rf venv/
+
+sort-requirements:
+	@export LC_ALL=C ;\
+	for f in *requirements*.txt ;\
+	do \
+		(set -x; sort -o "$$f" "$$f") ;\
+	done
 
 # Print a make var:
 #   make v v=MAKE_VAR
