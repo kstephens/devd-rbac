@@ -1,25 +1,22 @@
+BASE_DIR:=$(realpath .)
+PWD:=$(CWD)
+export LIB_DIR:=$(BASE_DIR)/lib
+
 ###################################
 # see .env:
 PYTHON_VERSION=3.11 # 3.11.10
-export PYTHONPATH:=${PWD}/lib:${PYTHONPATH}
-export PATH:=${PWD}/bin:${PWD}/venv/bin:${PATH}
+export PYTHONPATH:=${BASE_DIR}/lib:${PYTHONPATH}
+export PATH:=${BASE_DIR}/bin:${BASE_DIR}/venv/bin:${PATH}
 ###################################
 
-CWD:=$(realpath .)
-PWD:=$(CWD)
-BASE_DIR:=$(CWD)
-export LIB_DIR:=$(CWD)/lib
-# include $(CWD)/.env
-# export PYTHON_VERSION
-export PYTHONPATH
-
-# Note: scripts/ do not pass checks
-SCRIPTS = $(CWD)/scripts
-SRC = $(LIB_DIR)
-FORMAT_SRC = $(SRC)
+SRC_DIR = $(LIB_DIR)
 TEST_DIR = $(LIB_DIR)
 TEST_SRC = $(shell find '$(TEST_DIR)' -name '*_test.py' | sort)
-SPELL_CHECK_FILES=README.md
+LINT_FILES = $(SRC_DIR)
+FORMAT_FILES = $(SRC_DIR)
+TYPING_FILES = $(SRC_DIR)
+SPELL_CHECK_FILES = README.md
+SPELL_CHECK_FILES += $(SRC_DIR)
 
 venv=. venv/bin/activate &&
 
@@ -56,24 +53,24 @@ TEST_DATA_EXPECT := $(call find_test_data__py,expect) $(call find_test_data_out,
 TEST_DATA := $(TEST_DATA_ACTUAL) $(TEST_DATA_EXPECT)
 test-data: clean-test-data-actual
 	$(MAKE) test; $(MAKE) test
-	$(MAKE) reformat FORMAT_SRC='$$(TEST_DATA)'
+	$(MAKE) reformat FORMAT_FILES='$$(TEST_DATA)'
 regen-test-data: clean-test-data-expect test-data
 
 lint:
-	$(venv) pylint $(SRC)
+	$(venv) pylint $(SRC_DIR)
 
 MYPY_REPORTS=--txt-report --html-report --any-exprs-report
 MYPY_OPTS=--config-file ./.mypy.ini --pretty --show-column-numbers --warn-redundant-casts
 MYPY_OPTS+=$(foreach v,$(MYPY_REPORTS),$(v) mypy/)
 typing:
 	mkdir -p mypy
-	$(venv) mypy $(MYPY_OPTS) $(SRC); rtn=$$?; head -999 mypy/*.txt; exit $$rtn
+	$(venv) mypy $(MYPY_OPTS) $(TYPING_FILES); rtn=$$?; head -999 mypy/*.txt; exit $$rtn
 
 format:
-	$(venv) black --check $(FORMAT_SRC)
+	$(venv) black --check $(FORMAT_FILES)
 
 reformat:
-	$(venv) black $(FORMAT_SRC)
+	$(venv) black $(FORMAT_FILES)
 
 spelling:
 	$(venv) codespell --summary $(SPELL_CHECK_FILES)

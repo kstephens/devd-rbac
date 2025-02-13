@@ -9,5 +9,5 @@ _*CHANGE THE TITLE*_
 make setup
 . venv/bin/activate
 . .env
-python -m devd.main foo bar
+python -m devd.main # foo bar
 ```

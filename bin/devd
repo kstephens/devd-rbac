@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+'''
+main driver
+'''
+from pathlib import Path
+import sys
+prog_path = Path.cwd() / Path(sys.argv[0])
+base_dir = prog_path.parent
+lib_dir = base_dir / 'lib'
+sys.path.insert(0, str(lib_dir))
+import devd.main
+sys.exit(devd.main.main(sys.argv, prog_path=prog_path, base_dir=base_dir, lib_dir=lib_dir))
