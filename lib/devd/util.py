@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Callable
+from typing import Any, List, Tuple, Callable
 import logging
 import sys
 from datetime import datetime, timezone
@@ -28,3 +28,11 @@ def with_timing(
         exc = e
     t1 = datetime.now(tz)
     return result, exc, t0, t1, (t1 - t0).total_seconds()
+
+
+def pairs(items: list, offset: int = 1) -> List[Tuple[Any, Any]]:
+    return [
+        (items[i], items[j])
+        for i in range(len(items))
+        for j in range(i + offset, len(items))
+    ]
