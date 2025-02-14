@@ -5,8 +5,7 @@ _*CHANGE THE TITLE*_
 ## Development
 
 ```bash
-# 1. Rename occurrences of `devd` to whatever!
-# 2. Change PYTHON_VERSION in `.env` and `Makefile`
+# Change PYTHON_VERSION in `.env` and `Makefile`
 
 make help
 make setup
@@ -14,5 +13,6 @@ make setup
 . .env
 bin/devd
 
+# Rename occurrences of `devd` to whatever!
 
 ```
