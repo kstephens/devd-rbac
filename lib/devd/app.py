@@ -1,21 +1,25 @@
 """
-devd.app - implement run()
+devd.app - implement App.run()
 """
 
 from typing import (
     Any,
     List,
     Tuple,
-)  #  , Self, Any, Dict  # , Callable, Literal, Tuple, cast
+    Dict,
+)  #  , Self, Any,Callable, Literal, Tuple, cast
 
 
-# (result, error, exit_code)
-AppResponse = Tuple[Any, Any | None, int | None]
+Result = Any
+Error = Any
+ExitCode = int | None
+AppResponse = Tuple[Result, Error, ExitCode]
 
 
 class App:
-    def __init__(self, args: List[str]):
+    def __init__(self, args: List[str], opts: Dict[str, Any]):
         self.args = args
+        self.opts = opts
 
     def run(self) -> AppResponse:
         """
@@ -26,13 +30,13 @@ class App:
         """
         arg0 = self.args and self.args[0]
         if arg0 == "EXCEPTION":
-            raise ValueError("EXCEPTION")
+            raise ValueError("App.run: EXCEPTION")
         if arg0 == "FAIL":
-            return "App.run", arg0, None
-        if arg0 == "EXIT":
-            return "App.run", None, 2
+            return "App.run: FAIL", arg0, None
+        if arg0 == "EXIT-2":
+            return "App.run: EXIT-2", None, 2
         # raise NotImplemented("App.run")
-        return "App.run", None, None
+        return "App.run: OK", None, None
 
     def __call__(self):
         return self.run()

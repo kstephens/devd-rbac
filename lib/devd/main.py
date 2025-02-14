@@ -2,47 +2,54 @@
 devd.main - basic command line interface
 """
 
-from typing import List  # ,Any, Self, Callable, Literal, Tuple, cast
+from typing import Any, List, Dict  # ,Any, Self, Callable, Literal, Tuple, cast
+import sys
+import json
+import logging
+from pathlib import Path
+from .app import App
+from . import util
+from .util import setup_logging, with_timing, WithTimingResult, backtrace_list
 
 # from dataclasses import dataclass, field
 # from pathlib import Path
-import sys
-
 # import os
 # import copy
-import json
-
 # import yaml
-import logging
-
 # from icecream import ic
-from .app import App
-from .util import setup_logging, with_timing
 
 
-def main(argv: List[str], **kwargs):
-    progname, *args = argv
+def main(argv: List[str], opts: Dict[str, Any]) -> int:
+    _progname, *args = argv
+    util.lib_dir = Path(opts.get("lib_dir") or ".").absolute()
 
     def run_app():
         setup_logging()
-        return App(args=args, **kwargs).run()
+        return App(args=args, opts=opts).run()
 
-    result, exc, t0, t1, elasped_sec = with_timing(run_app)
-    if result is not None:
-        result, error, exit_code = result
-    else:
+    response = process_result(with_timing(run_app))
+    json.dump(response, fp=sys.stdout, indent=2)
+    print("", file=sys.stdout)
+    return response["exit_code"]
+
+
+def process_result(with_timing_result: WithTimingResult):
+    result, exc, t0, t1, elasped_sec = with_timing_result
+    if result is None:
         result = error = exit_code = None
+    else:
+        result, error, exit_code = result
     if exc is not None and error is None:
         if exit_code is None:
             exit_code = 1
         error = {
-            "class": error.__class__.__name__,
+            "class": exc.__class__.__name__,
             "message": str(exc),
-            "backtrace": [],
+            "backtrace": backtrace_list(exc),
         }
     elif error is not None:
         error = {
-            "class": error.__class__.__name__,
+            "class": None,  # error.__class__.__name__,
             "message": str(error),
             "backtrace": [],
         }
@@ -56,8 +63,6 @@ def main(argv: List[str], **kwargs):
         "stopped_at": t1.isoformat(),
         "elapsed_ms": round(elasped_sec * 1000, 2),
     }
-    if exc is not None:
-        logging.error("%s", f"{progname}: EXCEPTION")
-    json.dump(response, fp=sys.stdout, indent=2)
-    print("", file=sys.stdout)
-    return exit_code
+    if error:
+        logging.error("%s", f"{error['class']} {error['message']}")
+    return response

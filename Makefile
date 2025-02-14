@@ -12,11 +12,12 @@ export PATH:=${BASE_DIR}/bin:${BASE_DIR}/venv/bin:${PATH}
 SRC_DIR = $(LIB_DIR)
 TEST_DIR = $(LIB_DIR)
 TEST_SRC = $(shell find '$(TEST_DIR)' -name '*_test.py' | sort)
-LINT_FILES = $(SRC_DIR)
-FORMAT_FILES = $(SRC_DIR)
-TYPING_FILES = $(SRC_DIR)
+PY_FILES = $(shell find '$(SRC_DIR)' -name '*.py' | sort)
+LINT_FILES = $(PY_FILES)
+FORMAT_FILES = $(PY_FILES)
+TYPING_FILES = $(PY_FILES)
 SPELL_CHECK_FILES = README.md
-SPELL_CHECK_FILES += $(SRC_DIR)
+SPELL_CHECK_FILES += $(PY_FILES)
 
 venv=. venv/bin/activate &&
 
