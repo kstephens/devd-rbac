@@ -20,26 +20,26 @@ SPELL_CHECK_FILES += $(SRC_DIR)
 
 venv=. venv/bin/activate &&
 
-default: check format
+default: check format                  #
 
-all: reformat check
+all: reformat check                    #
 
-setup: venv deps pre-commit-install
+setup: venv deps pre-commit-install    #
 
-venv:
+venv:                                  # create an empty venv/
 	python$(PYTHON_VERSION) -m venv venv
 
-deps:
+deps:                                  # install *requirements*.txt
 	$(venv) pip install $(foreach f,$(REQUIREMENTS_TXT),-r $(f) )
 REQUIREMENTS_TXT=$(wildcard *requirements*.txt)
 
-pre-commit-install:
+pre-commit-install:                    # install precommits
 	$(venv) pre-commit install
 
-check: test lint typing spelling
+check: test lint typing spelling       #
 
 PYTEST_OPTS=-s # --capture=no --verbose --failed-first
-test:
+test:                                  # run tests w/ coverage
 	-rm -rf coverage/*
 	mkdir -p coverage
 	$(venv) coverage run -m pytest $(PYTEST_OPTS) $(TEST_SRC)
@@ -56,29 +56,30 @@ test-data: clean-test-data-actual
 	$(MAKE) reformat FORMAT_FILES='$$(TEST_DATA)'
 regen-test-data: clean-test-data-expect test-data
 
-lint:
+lint:                                  # lint sources
 	$(venv) pylint $(SRC_DIR)
 
 MYPY_REPORTS=--txt-report --html-report --any-exprs-report
 MYPY_OPTS=--config-file ./.mypy.ini --pretty --show-column-numbers --warn-redundant-casts
 MYPY_OPTS+=$(foreach v,$(MYPY_REPORTS),$(v) mypy/)
-typing:
+typing:                                # static type checking
 	mkdir -p mypy
 	$(venv) mypy $(MYPY_OPTS) $(TYPING_FILES); rtn=$$?; head -999 mypy/*.txt; exit $$rtn
 
-format:
+format:                                # check formatting
 	$(venv) black --check $(FORMAT_FILES)
 
-reformat:
+reformat:                              # reformat
 	$(venv) black $(FORMAT_FILES)
 
-spelling:
+spelling:                              # check spelling
 	$(venv) codespell --summary $(SPELL_CHECK_FILES)
 
-fix-spelling:
+fix-spelling:                          # fix spelling
 	$(venv) codespell --write-changes $(SPELL_CHECK_FILES)
 
-clean: clean-test-data-actual
+clean:                                 # clean up
+	$(MAKE) clean-test-data-actual
 	find '$(SRC_BASE)' -name '__pycache__' -exec echo rm -rf '{}' \;
 	rm -rf .coverage
 	rm -rf .mypy_cache/ .pytest_cache/ .ruff_cache/
@@ -91,17 +92,18 @@ clean-test-data-actual:
 clean-test-data-expect:
 	rm -f $(TEST_DATA_EXPECT)
 
-very-clean: clean
+very-clean: clean                      # clean and remove venv/
 	rm -rf venv/
 
-sort-requirements:
+sort-requirements:                     # sort *requirements*.txt
 	@export LC_ALL=C ;\
 	for f in *requirements*.txt ;\
 	do \
 		(set -x; sort -o "$$f" "$$f") ;\
 	done
 
-# Print a make var:
-#   make v v=MAKE_VAR
-v:
+v:                                     # print a var named `v`
 	@echo $($(v))
+
+help:                                  # this help
+	@grep -Ee "^[-a-z]+:.+# +.*" Makefile
