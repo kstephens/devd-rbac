@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple, Callable
+from typing import Any, List, Tuple, Callable, Iterable, Generator
 import logging
 import sys
 import traceback
@@ -9,12 +9,30 @@ from datetime import datetime, timezone
 lib_dir: Path = Path(".")
 
 
-def pairs(items: list, offset: int = 1) -> List[Tuple[Any, Any]]:
-    return [
-        (items[i], items[j])
-        for i in range(len(items))
-        for j in range(i + offset, len(items))
-    ]
+# Generator[yield_type, send_type, return_type]
+PairsGenerator = Generator[Tuple[Any, Any], None, None]
+
+
+def pairs_generator(items: Iterable, inclusive: bool = False) -> PairsGenerator:
+    """
+    Generates unique 2-tuples pairing each item with another.
+    This is effectively the triangular matrix of the cross product.
+    When inclusive is true, identity elements are present: e.g. ("a", "a").
+    """
+    offset = 0 if inclusive else -1
+    i = 0
+    for a in items:
+        j = 0
+        for b in items:
+            if j + offset >= i:
+                yield a, b
+            j += 1
+        i += 1
+
+
+def pairs(items: Iterable, inclusive: bool = False) -> Iterable[Tuple[Any, Any]]:
+    """See pairs_generator."""
+    return list(pairs_generator(items, inclusive))
 
 
 def setup_logging(**kwargs):
