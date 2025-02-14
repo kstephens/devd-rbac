@@ -1,5 +1,5 @@
 asgiref==3.8.1
-cryptography==43.0.3
+cryptography==44.0.1
 # 2024-03-20: python_minifier does not work on 3.12.1.
 # 2024-09-27: python-ldap==3.4.4  # for rbac.ldap_service
 fastapi[standard]==0.115.8
