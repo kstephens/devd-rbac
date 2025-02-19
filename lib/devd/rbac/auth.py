@@ -3,7 +3,7 @@ import logging
 import re
 import base64
 from .cipher import Cipher
-from .identity import Token, UserPass, Cookie
+from .credential import Token, UserPass, Cookie
 from .domain import IdentityDomain, PasswordDomain
 
 Auth = UserPass | Token | Cookie

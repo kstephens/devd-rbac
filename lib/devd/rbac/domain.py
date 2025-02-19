@@ -1,10 +1,12 @@
 from dataclasses import dataclass, field
-from .identity import (
+from .subject import (
     User,
     Users,
     Group,
     Groups,
-    Identity,
+    Subject,
+)
+from .credential import (
     UserPass,
     UserPasses,
     Tokens,
@@ -45,7 +47,7 @@ class RoleDomain:
     def roles_for_group(self, group: Group) -> Roles:
         return [memb.role for memb in self.memberships_for_identity(group)]
 
-    def memberships_for_identity(self, member: Identity) -> Memberships:
+    def memberships_for_identity(self, member: Subject) -> Memberships:
         def pred(membership: Membership) -> bool:
             return (
                 isinstance(membership.member, type(member))
@@ -134,7 +136,7 @@ class Domain:
             roles.extend([memb.role for memb in self.memberships_for_identity(group)])
         return roles
 
-    def memberships_for_identity(self, identity: Identity) -> Memberships:
+    def memberships_for_identity(self, identity: Subject) -> Memberships:
         return self.role_domain.memberships_for_identity(identity)
 
     def password_for_user(self, user: User) -> UserPass | None:

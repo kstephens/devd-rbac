@@ -1,7 +1,7 @@
 from typing import Any, Self, Callable, Iterable
 from dataclasses import dataclass, field
 import re
-from .identity import User  # , Group
+from .subject import User  # , Group
 
 
 class Matchable:

@@ -3,7 +3,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import re
 import logging
-from .identity import User, Users, Group, UserPass, UserPasses
+from .subject import User, Users, Group
+from .credential import UserPass, UserPasses
 from .rbac import (
     Resource,
     Action,

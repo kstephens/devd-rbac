@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 import tabulate
 from .loader import DomainFileLoader
-from .identity import UserPass, Cookie
+from .credential import UserPass, Cookie
 from .auth import (
     Authenticator,
 )

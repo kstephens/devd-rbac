@@ -19,5 +19,6 @@ from .domain import (
     Domain,
     Solver,
 )
-from .identity import User, Group, Identity
+from .subject import User, Group, Subject
+from .credential import UserPass, Token, Cookie, Credential
 from .loader import DomainFileLoader, TextLoader
