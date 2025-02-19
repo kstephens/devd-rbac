@@ -25,7 +25,7 @@ main_opts: Dict[str, Any] = {}
 
 def main(argv: List[str], opts: Dict[str, Any]) -> int:
     _progname, *args = argv
-    util.lib_dir = Path(opts.get("lib_dir") or ".").absolute()
+    util.lib_dir = Path(main_opts.get("lib_dir") or ".").absolute()
 
     # Parse arg
     while args:
@@ -33,7 +33,7 @@ def main(argv: List[str], opts: Dict[str, Any]) -> int:
         if arg == "--":
             args.pop(0)
             break
-        elif m := re.search(r"^--([a-z][-a-z]+)=(.*)", arg):
+        if m := re.search(r"^--([a-z][-a-z]+)=(.*)", arg):
             opts[m[1].replace("-", "_")] = m[2]
             args.pop(0)
         else:
