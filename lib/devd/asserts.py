@@ -1,10 +1,18 @@
+# Cribbed from:
+# - devdriven/asserts.py
+# - devdriven/util.py
+# - devdriven/path.py
+# - devdriven/glob.py
 from typing import Any, Iterable, List, Callable, Tuple, TextIO
 import os
 import sys
 from pathlib import Path
 import hashlib
 from pprint import pprint
-from .file import file_md5
+import platform
+import logging
+import time
+import subprocess
 
 FilterFunc = Callable[[str], str]
 Filepath = str
@@ -238,3 +246,58 @@ def lines_output(data: Any) -> Outputter:
             print(make_line(row), file=output)
 
     return f
+
+
+######################################
+# See: devdriven/file.py
+
+
+def file_md5(file: str, md5_cmd: str | None = None) -> str | None:
+    if not md5_cmd:
+        md5_cmd = "md5" if platform.system() == "Darwin" else "md5sum"
+    result = exec_command(
+        [md5_cmd, file], check=False, capture_output=True, encoding="utf-8"
+    )
+    if result.returncode == 0:
+        if md5_cmd.endswith("md5sum"):
+            return str(result.stdout.split(" ")[0]).strip()
+        return str(result.stdout.split(" = ")[1]).strip()
+    return None
+
+
+######################################
+# See: devdriven/util.py
+
+FuncAny = Callable[..., Any]
+SubprocessResult = Any  # subprocess.CompletedProcess
+
+
+def exec_command(cmd_line: List[str], **options: Any) -> SubprocessResult:
+    msg = f"exec_command : {repr(cmd_line)} : ..."
+    logging.info("%s", msg)
+    (result, dt_ms) = elapsed_ms(subprocess.run, cmd_line, **options)
+    logging.info(
+        "%s",
+        "".join(
+            [
+                msg,
+                f" : returncode {result.returncode} : ",
+                f"stdout {len_or_none(result.stdout)} bytes : ",
+                f"stderr {len_or_none(result.stderr)} bytes : ",
+                f"elapsed_ms {dt_ms:.3f}",
+            ]
+        ),
+    )
+    result.elapsed_ms = dt_ms
+    return result
+
+
+def elapsed_ms(func: FuncAny, *args: Any, **kwargs: Any) -> Tuple[Any, float]:
+    time_0 = time.time()
+    result = func(*args, **kwargs)
+    time_1 = time.time()
+    return (result, (time_1 - time_0) * 1000)
+
+
+def len_or_none(obj: Any) -> int | None:
+    return len(obj) if obj else None
