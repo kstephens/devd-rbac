@@ -25,7 +25,7 @@ main_opts: Dict[str, Any] = {}
 
 def main(argv: List[str], opts: Dict[str, Any]) -> int:
     _progname, *args = argv
-    util.lib_dir = Path(opts.get("lib_dir") or ".").absolute()
+    util.lib_dir = Path(main_opts.get("lib_dir") or ".").absolute()
 
     # Parse arg
     while args:

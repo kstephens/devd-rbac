@@ -11,7 +11,7 @@ base_dir = prog_path.parent.parent
 lib_dir = base_dir / 'lib'
 sys.path.insert(0, str(lib_dir))
 import devd.main
-devd.main.opts = {
+devd.main.main_opts = {
     "argv": argv,
     "argv0": argv[0],
     "pid": os.getpid(),
