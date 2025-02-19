@@ -198,9 +198,9 @@ class App:
         )
 
     def make_authenticator(self):
-        self.identity_domain, self.password_domain = self.make_auth_domains()
+        self.subject_domain, self.password_domain = self.make_auth_domains()
         authenticator = Authenticator(
-            identity_domain=self.identity_domain,
+            subject_domain=self.subject_domain,
             password_domain=self.password_domain,
             cipher_key=self.cipher_key,
             cookie_name=self.auth_cookie_name,
@@ -213,15 +213,15 @@ class App:
     def make_auth_domains(self):
         root = self.domain_root
         loader = DomainFileLoader()
-        identity_domain = loader.load_user_file(root / "user.txt")
+        subject_domain = loader.load_user_file(root / "user.txt")
         password_domain = loader.load_password_file(root / "password.txt")
-        return identity_domain, password_domain
+        return subject_domain, password_domain
 
     def make_domain(self, resource: Resource) -> Domain:
         root = self.domain_root
         loader = DomainFileLoader()
         domain = Domain(
-            identity_domain=self.identity_domain,
+            subject_domain=self.subject_domain,
             role_domain=loader.load_membership_file(root / "role.txt"),
             rule_domain=loader.load_rules_for_resource(
                 self.resource_root, Path(resource.name)

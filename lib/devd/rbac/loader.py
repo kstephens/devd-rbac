@@ -19,7 +19,7 @@ from .rbac import (
     regex_matcher,
     negate_matcher,
 )
-from .domain import IdentityDomain, RoleDomain, RuleDomain, PasswordDomain
+from .domain import SubjectDomain, RoleDomain, RuleDomain, PasswordDomain
 from .util import getter, mapcat, clean_path, glob_to_regex
 
 
@@ -134,7 +134,7 @@ class DomainFileLoader:
     Creates a static Domain.
     """
 
-    def load_user_file(self, user_file: Path) -> IdentityDomain:
+    def load_user_file(self, user_file: Path) -> SubjectDomain:
         with open(user_file, encoding="utf-8") as io:
             users = TextLoader().read_users(io)
         group_by_name = {}
@@ -142,7 +142,7 @@ class DomainFileLoader:
             for group in user.groups:
                 group_by_name[group.name] = group
         groups = sorted(group_by_name.values(), key=getter("name"))
-        return IdentityDomain(users=users, groups=groups)
+        return SubjectDomain(users=users, groups=groups)
 
     def load_membership_file(self, memberships_file: Path) -> RoleDomain:
         with open(memberships_file, encoding="utf-8") as io:

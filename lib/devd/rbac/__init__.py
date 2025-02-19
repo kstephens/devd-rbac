@@ -12,7 +12,7 @@ from .rbac import (
     Rules,
 )
 from .domain import (
-    IdentityDomain,
+    SubjectDomain,
     RoleDomain,
     RuleDomain,
     PasswordDomain,

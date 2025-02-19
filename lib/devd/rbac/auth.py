@@ -4,25 +4,25 @@ import re
 import base64
 from .cipher import Cipher
 from .credential import Token, UserPass, Cookie
-from .domain import IdentityDomain, PasswordDomain
+from .domain import SubjectDomain, PasswordDomain
 
 Auth = UserPass | Token | Cookie
 
 
 class Authenticator:
-    identity_domain: IdentityDomain
+    subject_domain: SubjectDomain
     password_domain: PasswordDomain
     cipher_key: str
     cookie_name: str
 
     def __init__(
         self,
-        identity_domain: IdentityDomain,
+        subject_domain: SubjectDomain,
         password_domain: PasswordDomain,
         cipher_key: str,
         cookie_name: str,
     ):
-        self.identity_domain, self.password_domain = identity_domain, password_domain
+        self.subject_domain, self.password_domain = subject_domain, password_domain
         self.cipher_key, self.cookie_name = cipher_key, cookie_name
 
     def authenticate(
@@ -51,7 +51,7 @@ class Authenticator:
     def auth_userpass(self, userpass: UserPass) -> UserPass | None:
         """Verify username and password."""
         logging.debug("%s", f"auth_userpass: {userpass.username=}")
-        if not (user := self.identity_domain.user_by_name(userpass.username)):
+        if not (user := self.subject_domain.user_by_name(userpass.username)):
             return None
         logging.debug("%s", f"auth_userpass: {user=}")
         if not (password := self.password_domain.password_for_user(user)):

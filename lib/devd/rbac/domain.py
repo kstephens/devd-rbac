@@ -16,7 +16,7 @@ from .util import find
 
 
 @dataclass
-class IdentityDomain:
+class SubjectDomain:
     users: Users = field(default_factory=list)
     groups: Groups = field(default_factory=list)
 
@@ -101,14 +101,14 @@ class TokenDomain:
 
 @dataclass
 class AuthDomain:
-    identity_domain: IdentityDomain
+    subject_domain: SubjectDomain
     password_domain: PasswordDomain
     token_domain: TokenDomain
 
 
 @dataclass
 class Domain:
-    identity_domain: IdentityDomain
+    subject_domain: SubjectDomain
     role_domain: RoleDomain
     rule_domain: RuleDomain
     password_domain: PasswordDomain
@@ -119,13 +119,13 @@ class Domain:
         )
 
     def user_for_name(self, name: str) -> User:
-        user = self.identity_domain.user_by_name(name)
+        user = self.subject_domain.user_by_name(name)
         if user and not user.groups:
-            user.groups = self.identity_domain.groups_for_user(user)
+            user.groups = self.subject_domain.groups_for_user(user)
         return user
 
     def group_by_name(self, name: str) -> Group:
-        return self.identity_domain.group_by_name(name)
+        return self.subject_domain.group_by_name(name)
 
     def role_by_name(self, name: str) -> Role:
         return self.role_domain.role_by_name(name)

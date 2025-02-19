@@ -52,12 +52,12 @@ def run_rbac_integration(prt):
         request = Request(resource=Resource(resource), action=Action(action), user=user)
 
         loader = DomainFileLoader()
-        identity_domain = loader.load_user_file(domain_base / "user.txt")
+        subject_domain = loader.load_user_file(domain_base / "user.txt")
         password_domain = loader.load_password_file(domain_base / "password.txt")
         role_domain = loader.load_membership_file(domain_base / "role.txt")
         rule_domain = loader.load_rules_for_resource(resource_root, Path(resource))
         domain = Domain(
-            identity_domain=identity_domain,
+            subject_domain=subject_domain,
             role_domain=role_domain,
             rule_domain=rule_domain,
             password_domain=password_domain,
