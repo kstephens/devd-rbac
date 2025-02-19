@@ -13,7 +13,7 @@ pylint==3.3.1
 pytest==7.1.2
 pytest-cov==4.1.0
 pytest-mock==3.8.2
-python_minifier==2.9.0
+# python_minifier==2.9.0
 rjsmin==1.2.2
 slimit==0.8.1
 # 2024-03-20: python_minifier does not work on 3.12.1.
