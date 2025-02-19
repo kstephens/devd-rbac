@@ -4,7 +4,7 @@ export LIB_DIR:=$(BASE_DIR)/lib
 
 ###################################
 # see .env:
-PYTHON_VERSION=3.11
+PYTHON_VERSION=3.12
 export PYTHONPATH:=${BASE_DIR}/lib:${PYTHONPATH}
 export PATH:=${BASE_DIR}/bin:${BASE_DIR}/venv/bin:${PATH}
 ###################################
