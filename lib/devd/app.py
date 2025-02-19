@@ -17,9 +17,10 @@ AppResponse = Tuple[Result, Error, ExitCode]
 
 
 class App:
-    def __init__(self, args: List[str], opts: Dict[str, Any]):
+    def __init__(self, args: List[str], opts: Dict[str, Any], main_opts: dict):
         self.args = args
         self.opts = opts
+        self.main_opts = main_opts
 
     def run(self) -> AppResponse:
         """
