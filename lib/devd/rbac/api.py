@@ -36,9 +36,6 @@ from .app import App, ResourceRequest
 
 ####################################################
 
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
-
-
 app = App(
     resource_root="tests/data/rbac/root",
     domain_root="tests/data/rbac/domain",
@@ -154,7 +151,7 @@ def resource_request(
 ######################################
 
 
-def main(**kwargs):
+def main(*_args, **kwargs):
     kwargs = {
         "host": "0.0.0.0",
         "port": 8888,
@@ -162,8 +159,10 @@ def main(**kwargs):
         "reload_dirs": ["lib"],
         "reload_excludes": ["*_test.py"],
     } | kwargs
+    kwargs["port"] = int(kwargs["port"])
     uvicorn.run("devd.rbac.api:api", **kwargs)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     main()

@@ -1,18 +1,29 @@
-# devd-template-python
+# devd-rbac
 
-_*CHANGE THE TITLE*_
+## Python RBAC Library
+
+Provides:
+
+* User, Group identity
+* Role, Rule, Permission objects
+* User and Group role memberships
+* Basic User Auth, Auth Tokens
+* Web API for auth checks and static file services
+* Basic LDAP support
 
 ## Development
 
 ```bash
-# Change PYTHON_VERSION in `.env` and `Makefile`
-
 make help
 make setup
 . venv/bin/activate
 . .env
-bin/devd
+```
 
-# Rename occurrences of `devd` to whatever!
+## API
 
+```bash
+. venv/bin/activate
+bin/devd --port=8989 --host=0.0.0.0 rbac api run &
+open http://127.0.0.1:8989/__
 ```
