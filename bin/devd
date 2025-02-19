@@ -4,15 +4,22 @@ main driver
 '''
 from pathlib import Path
 import sys
-prog_path = Path.cwd() / Path(sys.argv[0])
+import os
+argv = sys.argv.copy()
+prog_path = Path.cwd() / Path(argv[0])
 base_dir = prog_path.parent.parent
 lib_dir = base_dir / 'lib'
 sys.path.insert(0, str(lib_dir))
 import devd.main
-opts = {
+devd.main.opts = {
+    "argv": argv,
+    "argv0": argv[0],
+    "pid": os.getpid(),
+    "uid": os.getuid(),
+    "gid": os.getgid(),
     "prog_name": Path(sys.argv[0]).name,
     "prog_path": prog_path,
     "base_dir": base_dir,
     "lib_dir": lib_dir,
 }
-sys.exit(devd.main.main(sys.argv, opts))
+sys.exit(devd.main.main(argv, {}))

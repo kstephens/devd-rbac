@@ -4,10 +4,11 @@ devd.main - basic command line interface
 
 from typing import Any, List, Dict  # ,Any, Self, Callable, Literal, Tuple, cast
 import sys
+import re
 import json
 import logging
 from pathlib import Path
-from .app import App
+from . import app
 from . import util
 from .util import setup_logging, with_timing, WithTimingResult, backtrace_list
 
@@ -19,13 +20,28 @@ from .util import setup_logging, with_timing, WithTimingResult, backtrace_list
 # from icecream import ic
 
 
+main_opts: Dict[str, Any] = {}
+
+
 def main(argv: List[str], opts: Dict[str, Any]) -> int:
     _progname, *args = argv
     util.lib_dir = Path(opts.get("lib_dir") or ".").absolute()
 
+    # Parse arg
+    while args:
+        arg = args[0]
+        if arg == "--":
+            args.pop(0)
+            break
+        if m := re.search(r"^--([a-z][-a-z]+)=(.*)", arg):
+            opts[m[1].replace("-", "_")] = m[2]
+            args.pop(0)
+        else:
+            break
+
     def run_app():
         setup_logging()
-        return App(args=args, opts=opts).run()
+        return app.App(args=args, opts=opts, main_opts=main_opts).run()
 
     response = process_result(with_timing(run_app))
     json.dump(response, fp=sys.stdout, indent=2)
