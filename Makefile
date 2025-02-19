@@ -28,7 +28,7 @@ all: reformat check                    #
 setup: venv deps pre-commit-install    #
 
 venv:                                  # create an empty venv/
-	python$(PYTHON_VERSION) -m venv venv
+	rm -rf venv; python$(PYTHON_VERSION) -m venv venv
 
 deps:                                  # install *requirements*.txt
 	$(venv) pip install $(foreach f,$(REQUIREMENTS_TXT),-r $(f) )
