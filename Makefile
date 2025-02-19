@@ -58,13 +58,15 @@ test-data: clean-test-data-actual
 regen-test-data: clean-test-data-expect test-data
 
 lint:                                  # lint sources
-	$(venv) pylint $(SRC_DIR)
+	$(venv) pylint $(PY_FILES)
 
 MYPY_REPORTS=--txt-report --html-report --any-exprs-report
 MYPY_OPTS=--config-file ./.mypy.ini --pretty --show-column-numbers --warn-redundant-casts
 MYPY_OPTS+=$(foreach v,$(MYPY_REPORTS),$(v) mypy/)
 typing:                                # static type checking
 	mkdir -p mypy
+	-mypy --install-types --non-interactive
+	-stubgen -o $(LIB_DIR) $(PY_FILES)
 	$(venv) mypy $(MYPY_OPTS) $(TYPING_FILES); rtn=$$?; head -999 mypy/*.txt; exit $$rtn
 
 format:                                # check formatting
