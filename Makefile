@@ -28,7 +28,7 @@ all: reformat check                    #
 setup: venv deps pre-commit-install    #
 
 venv:                                  # create an empty venv/
-	python$(PYTHON_VERSION) -m venv venv
+	rm -rf venv; python$(PYTHON_VERSION) -m venv venv
 
 deps:                                  # install *requirements*.txt
 	$(venv) pip install $(foreach f,$(REQUIREMENTS_TXT),-r $(f) )
@@ -58,13 +58,15 @@ test-data: clean-test-data-actual
 regen-test-data: clean-test-data-expect test-data
 
 lint:                                  # lint sources
-	$(venv) pylint $(SRC_DIR)
+	$(venv) pylint $(PY_FILES)
 
 MYPY_REPORTS=--txt-report --html-report --any-exprs-report
 MYPY_OPTS=--config-file ./.mypy.ini --pretty --show-column-numbers --warn-redundant-casts
 MYPY_OPTS+=$(foreach v,$(MYPY_REPORTS),$(v) mypy/)
 typing:                                # static type checking
 	mkdir -p mypy
+	-mypy --install-types --non-interactive
+	-stubgen -o $(LIB_DIR) $(PY_FILES)
 	$(venv) mypy $(MYPY_OPTS) $(TYPING_FILES); rtn=$$?; head -999 mypy/*.txt; exit $$rtn
 
 format:                                # check formatting
