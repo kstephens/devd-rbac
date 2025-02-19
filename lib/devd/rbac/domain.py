@@ -39,15 +39,15 @@ class RoleDomain:
         return find(lambda x: x.name == name, self.roles)
 
     def roles_for_user(self, user: User) -> Roles:
-        roles = [memb.role for memb in self.memberships_for_identity(user)]
+        roles = [memb.role for memb in self.memberships_for_subject(user)]
         for group in user.groups:
             roles.extend(self.roles_for_group(group))
         return roles
 
     def roles_for_group(self, group: Group) -> Roles:
-        return [memb.role for memb in self.memberships_for_identity(group)]
+        return [memb.role for memb in self.memberships_for_subject(group)]
 
-    def memberships_for_identity(self, member: Subject) -> Memberships:
+    def memberships_for_subject(self, member: Subject) -> Memberships:
         def pred(membership: Membership) -> bool:
             return (
                 isinstance(membership.member, type(member))
@@ -131,13 +131,13 @@ class Domain:
         return self.role_domain.role_by_name(name)
 
     def roles_for_user(self, user: User) -> Roles:
-        roles = [memb.role for memb in self.memberships_for_identity(user)]
+        roles = [memb.role for memb in self.memberships_for_subject(user)]
         for group in user.groups:
-            roles.extend([memb.role for memb in self.memberships_for_identity(group)])
+            roles.extend([memb.role for memb in self.memberships_for_subject(group)])
         return roles
 
-    def memberships_for_identity(self, identity: Subject) -> Memberships:
-        return self.role_domain.memberships_for_identity(identity)
+    def memberships_for_subject(self, subject: Subject) -> Memberships:
+        return self.role_domain.memberships_for_subject(subject)
 
     def password_for_user(self, user: User) -> UserPass | None:
         return self.password_domain.password_for_user(user)
