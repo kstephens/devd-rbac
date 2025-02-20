@@ -2,83 +2,85 @@
 devd.main - basic command line interface
 """
 
-from typing import Any, List, Dict  # ,Any, Self, Callable, Literal, Tuple, cast
-import sys
-import re
-import json
-import logging
+from typing import Any, List, Dict
 from pathlib import Path
+import os
+import icecream
 from . import app
 from . import util
-from .util import setup_logging, with_timing, WithTimingResult, backtrace_list
+from .util import (
+    setup_logging,
+    with_log_collection,
+    with_timing,
+    parse_args,
+    process_result,
+    output_response,
+    Args,
+    Opts,
+)
 
-# from dataclasses import dataclass, field
-# from pathlib import Path
-# import os
-# import copy
-# import yaml
-# from icecream import ic
+icecream.install()
+icecream.ic.configureOutput(includeContext=True)
+
+defaults = {
+    "log_format": "json",
+    "output_format": "json",  # "yaml", "none"
+    "capture_logs": True,
+}
 
 
-main_opts: Dict[str, Any] = {}
+class Main:
+    argv: Args
+    args: Args
+    opts: Opts
+
+    def __init__(self, argv: Args, opts: Opts):
+        opts = (
+            defaults
+            | {
+                "argv": argv,
+                "argv0": argv[0],
+                "pid": os.getpid(),
+                "uid": os.getuid(),
+                "gid": os.getgid(),
+                "prog_name": Path(argv[0]).name,
+            }
+            | opts
+        )
+        self.argv, self.opts = argv, opts
+        self.progname, *self.args = argv
+        self.log_records: List[Any] = []
+
+    def run(self) -> int:
+        util.lib_dir = Path(self.opts.get("lib_dir") or ".").absolute()
+        response = self.run_app()
+        # !!! TypeError: Object of type PosixPath is not JSON serializable
+        # response["main_opts"] = self.opts
+        output_response(response, self.opts["output_format"])
+        return response["exit_code"]
+
+    def make_app(self):
+        args, opts = parse_args(self.args, {})
+        return app.App(args=args, opts=opts, main_opts=self.opts)
+
+    def run_app(self):
+        setup_logging(formatter=self.opts["log_format"])
+
+        def execute_app():
+            return process_result(with_timing(self.make_app().run))
+
+        if self.opts["capture_logs"]:
+            log_records = []
+
+            def execute_app_and_logs():
+                response = execute_app()
+                response["logs"] = log_records
+                return response
+
+            return with_log_collection(log_records.append, execute_app_and_logs)
+
+        return execute_app()
 
 
 def main(argv: List[str], opts: Dict[str, Any]) -> int:
-    _progname, *args = argv
-    util.lib_dir = Path(main_opts.get("lib_dir") or ".").absolute()
-
-    # Parse arg
-    while args:
-        arg = args[0]
-        if arg == "--":
-            args.pop(0)
-            break
-        if m := re.search(r"^--([a-z][-a-z]+)=(.*)", arg):
-            opts[m[1].replace("-", "_")] = m[2]
-            args.pop(0)
-        else:
-            break
-
-    def run_app():
-        setup_logging()
-        return app.App(args=args, opts=opts, main_opts=main_opts).run()
-
-    response = process_result(with_timing(run_app))
-    json.dump(response, fp=sys.stdout, indent=2)
-    print("", file=sys.stdout)
-    return response["exit_code"]
-
-
-def process_result(with_timing_result: WithTimingResult):
-    result, exc, t0, t1, elasped_sec = with_timing_result
-    if result is None:
-        result = error = exit_code = None
-    else:
-        result, error, exit_code = result
-    if exc is not None and error is None:
-        if exit_code is None:
-            exit_code = 1
-        error = {
-            "class": exc.__class__.__name__,
-            "message": str(exc),
-            "backtrace": backtrace_list(exc),
-        }
-    elif error is not None:
-        error = {
-            "class": None,  # error.__class__.__name__,
-            "message": str(error),
-            "backtrace": [],
-        }
-    if exit_code is None:
-        exit_code = 0
-    response = {
-        "result": result,
-        "error": error,
-        "exit_code": exit_code,
-        "started_at": t0.isoformat(),
-        "stopped_at": t1.isoformat(),
-        "elapsed_ms": round(elasped_sec * 1000, 2),
-    }
-    if error:
-        logging.error("%s", f"{error['class']} {error['message']}")
-    return response
+    return Main(argv, opts).run()

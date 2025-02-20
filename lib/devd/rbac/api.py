@@ -33,6 +33,7 @@ from fastapi.responses import RedirectResponse, Response, HTMLResponse
 from fastapi.requests import Request
 from asgiref.sync import async_to_sync
 from .app import App, ResourceRequest
+from ..util import setup_logging
 
 ####################################################
 
@@ -164,5 +165,6 @@ def main(*_args, **kwargs):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    setup_logging(level=logging.INFO, formatter='json')
+    # logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     main()
