@@ -140,7 +140,7 @@ def with_timing(
 
 
 def process_result(with_timing_result: WithTimingResult) -> dict:
-    result, exc, t0, t1, elasped_sec = with_timing_result
+    result, exc, t0, t1, elapsed_sec = with_timing_result
     # app.AppResponse
     if result is None:
         result = error = exit_code = None
@@ -170,7 +170,7 @@ def process_result(with_timing_result: WithTimingResult) -> dict:
         "exit_code": exit_code,
         "started_at": t0.isoformat(),
         "stopped_at": t1.isoformat(),
-        "elapsed_ms": round(elasped_sec * 1000, 2),
+        "elapsed_ms": round(elapsed_sec * 1000, 2),
     }
     if error:
         logging.error("%s", f"{error['class']} : {error['message']}")
