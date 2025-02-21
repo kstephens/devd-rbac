@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 import tabulate
 from .loader import DomainFileLoader
-from .credential import UserPass, Cookie, Token
+from .credential import UserPass, Cookie, BearerToken
 from .auth import Authenticator, AuthTokenRequest
 from ..rbac import (
     Domain,
@@ -67,7 +67,7 @@ class App:
             return self.authenticator.auth_request_cookie(auth_request)
         return None
 
-    def auth_token(self, auth_request: AuthTokenRequest) -> Token | None:
+    def auth_token(self, auth_request: AuthTokenRequest) -> BearerToken | None:
         userpass = self.authenticator.auth_userpass(auth_request.userpass)
         if userpass:
             return self.authenticator.auth_request_token(auth_request)

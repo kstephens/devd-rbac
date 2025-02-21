@@ -14,8 +14,9 @@ class UserPass:
 
 
 @dataclass
-class Token:
+class BearerToken:
     value: str
+    description: str
 
 
 @dataclass
@@ -25,5 +26,5 @@ class Cookie:
 
 
 UserPasses = Iterable[UserPass]
-Tokens = Iterable[Token]
-Credential = UserPass | Token | Cookie
+BearerTokens = Iterable[BearerToken]
+Credential = UserPass | BearerToken | Cookie

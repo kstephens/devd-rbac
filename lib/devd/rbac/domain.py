@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from .subject import User, Users, Group, Groups, Subject
-from .credential import UserPass, UserPasses, Tokens
+from .credential import UserPass, UserPasses, BearerTokens
 from .rbac import Role, Roles, Membership, Memberships, Rule, Rules, Request
 from .util import find
 
@@ -86,7 +86,7 @@ class PasswordDomain:
 
 @dataclass
 class TokenDomain:
-    tokens: Tokens = field(default_factory=list)
+    tokens: BearerTokens = field(default_factory=list)
 
 
 @dataclass

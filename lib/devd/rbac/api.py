@@ -83,7 +83,7 @@ def post_auth_token(
     logging.info("post_auth_token %s", f"{token=}")
     if token:
         return {
-            "value": token.value,
+            "token": token,
             "headers": {
                 "Authorization": f"Bearer {token.value}",
             },

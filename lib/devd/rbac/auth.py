@@ -5,10 +5,8 @@ import time
 import base64
 from dataclasses import dataclass
 from .cipher import Cipher
-from .credential import Token, UserPass, Cookie
+from .credential import BearerToken, UserPass, Cookie
 from .domain import SubjectDomain, PasswordDomain
-
-Auth = UserPass | Token | Cookie
 
 
 @dataclass
@@ -86,7 +84,7 @@ class Authenticator:
         """Decode a cookie"""
         return self.secret_to_userpass(cookie.value)
 
-    def auth_token(self, token: Token) -> UserPass | None:
+    def auth_token(self, token: BearerToken) -> UserPass | None:
         """Decode a Bearer token"""
         return self.secret_to_userpass(token.value)
 
@@ -96,9 +94,11 @@ class Authenticator:
         """Return a new Cookie token."""
         return Cookie(self.cookie_name, self.auth_request_to_secret(auth_request))
 
-    def auth_request_token(self, auth_request: AuthTokenRequest) -> Token:
+    def auth_request_token(self, auth_request: AuthTokenRequest) -> BearerToken:
         """Return a new Bearer token."""
-        return Token(self.auth_request_to_secret(auth_request))
+        return BearerToken(
+            self.auth_request_to_secret(auth_request), auth_request.description
+        )
 
     ###################################################
 
@@ -113,9 +113,6 @@ class Authenticator:
         logging.info(
             "userpass_to_secret %s",
             f"{auth_request.userpass.username=} {issued=} {auth_request.lifetime=} {expiry=}",
-        )
-        print(
-            f"{auth_request.userpass.username=} {issued=} {auth_request.lifetime=} {expiry=}"
         )
         plaintext = f"5:{auth_request.userpass.username}:{issued}:{auth_request.lifetime}:{expiry}:{auth_request.userpass.password}"
         return cast(str, cipher.encipher(plaintext))
@@ -135,7 +132,6 @@ class Authenticator:
         # pylint: disable-next=bare-except
         except:
             return None
-        print(f"{username=} {issued=} {lifetime=} {expiry=}")
         if expiry and lifetime and self.clock() >= expiry:
             logging.info(
                 "secret_to_userpass %s",
@@ -154,9 +150,9 @@ class Authenticator:
             return UserPass(username, password)
         return None
 
-    def parse_bearer(self, auth_header: str) -> Token | None:
+    def parse_bearer(self, auth_header: str) -> BearerToken | None:
         if m := re.match(r"^Bearer +(\S+)$", auth_header):
             token = m[1]
             logging.debug("%s", f"parse_bearer {token=}")
-            return Token(token)
+            return BearerToken(token, "")
         return None
