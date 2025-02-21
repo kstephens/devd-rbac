@@ -65,9 +65,11 @@ MYPY_OPTS=--config-file ./.mypy.ini --pretty --show-column-numbers --warn-redund
 MYPY_OPTS+=$(foreach v,$(MYPY_REPORTS),$(v) mypy/)
 typing:                                # static type checking
 	mkdir -p mypy
+	$(venv) mypy $(MYPY_OPTS) $(TYPING_FILES); rtn=$$?; head -999 mypy/*.txt; exit $$rtn
+
+typing-stubs:                          # create and install stubs
 	-mypy --install-types --non-interactive
 	-stubgen -o $(LIB_DIR) $(PY_FILES)
-	$(venv) mypy $(MYPY_OPTS) $(TYPING_FILES); rtn=$$?; head -999 mypy/*.txt; exit $$rtn
 
 format:                                # check formatting
 	$(venv) black --check $(FORMAT_FILES)
