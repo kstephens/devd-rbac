@@ -8,10 +8,8 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 import tabulate
 from .loader import DomainFileLoader
-from .credential import UserPass, Cookie
-from .auth import (
-    Authenticator,
-)
+from .credential import UserPass, Cookie, Token
+from .auth import Authenticator, AuthTokenRequest
 from ..rbac import (
     Domain,
     Solver,
@@ -25,11 +23,16 @@ from ..rbac import (
 
 
 @dataclass
+class AuthRequest:
+    header: str | None
+    cookie: str | None
+
+
+@dataclass
 class ResourceRequest:
     action: str
     resource: str
-    auth_header: str | None
-    auth_cookie: str | None
+    auth_request: AuthRequest  #  | None
     body: bytes
 
 
@@ -48,14 +51,26 @@ class App:
         self.auth_cookie_name = "authsession"
         self.cipher_key = "123"
         self.authenticator = self.make_authenticator()
+        self.default_cookie_lifetime = 60
 
     ######################################
 
-    def login(self, username: str, password: str) -> Cookie | None:
-        userpass = self.authenticator.auth_userpass(UserPass(username, password))
-        logging.info("%s", f"login: {username=}")
+    def login(self, request: UserPass) -> Cookie | None:
+        userpass = self.authenticator.auth_userpass(request)
+        logging.info("%s", f"login: {request.username=}")
         if userpass:
-            return self.authenticator.userpass_cookie(userpass)
+            auth_request = AuthTokenRequest(
+                userpass,
+                "login",
+                self.default_cookie_lifetime,
+            )
+            return self.authenticator.auth_request_cookie(auth_request)
+        return None
+
+    def auth_token(self, auth_request: AuthTokenRequest) -> Token | None:
+        userpass = self.authenticator.auth_userpass(auth_request.userpass)
+        if userpass:
+            return self.authenticator.auth_request_token(auth_request)
         return None
 
     ######################################
@@ -128,7 +143,7 @@ class App:
     ######################################
 
     def check_access(self, request: ResourceRequest) -> ResourceResponse:
-        username = self.authenticate(request.auth_header, request.auth_cookie)
+        username = self.authenticate(request.auth_request)
         success, info = self.is_allowed(request.action, request.resource, username)
         status = 200 if success else 401
         return (
@@ -137,9 +152,11 @@ class App:
             json.dumps(info, indent=2).encode(),
         )
 
-    def authenticate(self, auth: str | None, cookie: str | None) -> str:
-        logging.debug("%s", f"authenticate: {auth=} {cookie=}")
-        userpass = self.authenticator.authenticate(None, auth, cookie)
+    def authenticate(self, auth_request: AuthRequest) -> str:
+        logging.debug("%s", f"authenticate: {auth_request=}")
+        userpass = self.authenticator.authenticate(
+            None, auth_request.header, auth_request.cookie
+        )
         logging.info("%s", f"authenticate: {userpass and userpass.username=}")
         if userpass:
             return userpass.username

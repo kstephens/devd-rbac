@@ -1,12 +1,21 @@
 from typing import cast
 import logging
 import re
+import time
 import base64
+from dataclasses import dataclass
 from .cipher import Cipher
 from .credential import Token, UserPass, Cookie
 from .domain import SubjectDomain, PasswordDomain
 
 Auth = UserPass | Token | Cookie
+
+
+@dataclass
+class AuthTokenRequest:
+    userpass: UserPass
+    description: str
+    lifetime: int | None
 
 
 class Authenticator:
@@ -24,6 +33,7 @@ class Authenticator:
     ):
         self.subject_domain, self.password_domain = subject_domain, password_domain
         self.cipher_key, self.cookie_name = cipher_key, cookie_name
+        self.clock = time.time
 
     def authenticate(
         self,
@@ -31,6 +41,13 @@ class Authenticator:
         auth: str | None,
         cookie: str | None,
     ) -> UserPass | None:
+        """
+        Authenticate by one of the following, in order of precedence:
+        - Raw username and password
+        - HTTP Basic Auth header
+        - HTTP Authorization: Bearer token
+        - HTTP Cookie
+        """
         result = None
         if userpass is not None and not result:
             result = self.auth_userpass(userpass)
@@ -66,32 +83,65 @@ class Authenticator:
         return None
 
     def auth_cookie(self, cookie: Cookie) -> UserPass | None:
+        """Decode a cookie"""
         return self.secret_to_userpass(cookie.value)
 
     def auth_token(self, token: Token) -> UserPass | None:
+        """Decode a Bearer token"""
         return self.secret_to_userpass(token.value)
 
     ###################################################
 
-    def userpass_cookie(self, userpass: UserPass) -> Cookie:
-        return Cookie(self.cookie_name, self.userpass_to_secret(userpass))
+    def auth_request_cookie(self, auth_request: AuthTokenRequest) -> Cookie:
+        """Return a new Cookie token."""
+        return Cookie(self.cookie_name, self.auth_request_to_secret(auth_request))
 
-    def userpass_token(self, userpass: UserPass) -> Token:
-        return Token(self.userpass_to_secret(userpass))
+    def auth_request_token(self, auth_request: AuthTokenRequest) -> Token:
+        """Return a new Bearer token."""
+        return Token(self.auth_request_to_secret(auth_request))
 
     ###################################################
 
-    def userpass_to_secret(self, userpass: UserPass) -> str:
-        logging.debug("%s", f"userpass_to_secret: {userpass.username=}")
+    def auth_request_to_secret(self, auth_request: AuthTokenRequest) -> str:
+        logging.debug("userpass_to_secret %s", f"{auth_request.userpass.username=}")
         cipher = Cipher(self.cipher_key)
-        plaintext = f"{userpass.username}:{userpass.password}"
+        issued = int(self.clock())
+        if auth_request.lifetime:
+            expiry = int(issued + auth_request.lifetime)
+        else:
+            expiry = 0
+        logging.info(
+            "userpass_to_secret %s",
+            f"{auth_request.userpass.username=} {issued=} {auth_request.lifetime=} {expiry=}",
+        )
+        print(
+            f"{auth_request.userpass.username=} {issued=} {auth_request.lifetime=} {expiry=}"
+        )
+        plaintext = f"5:{auth_request.userpass.username}:{issued}:{auth_request.lifetime}:{expiry}:{auth_request.userpass.password}"
         return cast(str, cipher.encipher(plaintext))
 
-    def secret_to_userpass(self, secret: str) -> UserPass:
-        logging.info("%s", f"secret_to_userpass: {secret=}")
+    def secret_to_userpass(self, secret: str) -> UserPass | None:
+        logging.info("secret_to_userpass %s", f"{secret=}")
         cipher = Cipher(self.cipher_key)
         secret = cast(str, cipher.decipher(secret))
-        username, password = secret.split(":", 1)
+        try:
+            n_fields, username, issued_s, lifetime_s, expiry_s, password = secret.split(
+                ":", 5
+            )
+            assert n_fields == "5"
+            issued = int(issued_s)
+            lifetime = int(lifetime_s)
+            expiry = int(expiry_s)
+        # pylint: disable-next=bare-except
+        except:
+            return None
+        print(f"{username=} {issued=} {lifetime=} {expiry=}")
+        if expiry and lifetime and self.clock() >= expiry:
+            logging.info(
+                "secret_to_userpass %s",
+                f"expired {username=} {issued=} {lifetime=} {expiry=}",
+            )
+            return None
         return UserPass(username, password)
 
     ###################################################

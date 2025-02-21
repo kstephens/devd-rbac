@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 Username = str
 Password = str
+CookieName = str
+CookieValue = str
 
 
 @dataclass
@@ -11,16 +13,9 @@ class UserPass:
     password: Password
 
 
-UserPasses = Iterable[UserPass]
-
-
 @dataclass
 class Token:
     value: str
-
-
-CookieName = str
-CookieValue = str
 
 
 @dataclass
@@ -29,6 +24,6 @@ class Cookie:
     value: CookieValue
 
 
+UserPasses = Iterable[UserPass]
 Tokens = Iterable[Token]
-
 Credential = UserPass | Token | Cookie

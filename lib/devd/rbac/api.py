@@ -1,38 +1,12 @@
-"""
-To start:
-
-PYTHONPATH=lib:$PYTHONPATH python -m devd.rbac.api
-
-curl http://localhost:8888/__/access/GET/a/f1.txt
-curl http://bob@localhost:8888/__/access/GET/a/f1.txt
-curl http://bob:@localhost:8888/__/access/GET/a/f1.txt
-curl http://bob:b0b3r7@localhost:8888/a/f1.txt
-curl http://bob:b0b3r7@localhost:8888/__/access/GET/a/f1.txt
-curl http://bob@localhost:8888/__/access/GET/a/f1.txt
-curl http://localhost:8888/__/access/GET/a/f1.txt
-curl http://bolocalhost:8888/a/f1.txt
-curl http://bob:b0b3r7@localhost:8888/__/access/GET/a/f1.txt
-curl http://bob:b0b3r7@localhost:8888/__/access/GET/a/f2.txt
-curl http://bob:b0b3r7@localhost:8888/a/f2.txt
-curl http://bob:b0b3r7@localhost:8888/a/f1.txt
-curl --data-binary='abc' -X PUT http://bob:b0b3r7@localhost:8888/a/f9.txt
-curl http://bob:b0b3r7@localhost:8888/a/f9.txt
-curl --data-binary 'abc' -X PUT http://bob:b0b3r7@localhost:8888/a/f9.txt
-curl --data-binary 'abc' -X PUT http://bob:b0b3r7@localhost:8888/a/b/bob.txt
-curl --data-binary 'frank was here!' -X PUT http://frank:crick@localhost:8888/a/b/frank.txt
-
-"""
-
 from typing import Literal, Annotated, Callable
 import re
 import logging
-import sys
 import uvicorn
 from fastapi import FastAPI, Path, Form, status
 from fastapi.responses import RedirectResponse, Response, HTMLResponse
 from fastapi.requests import Request
 from asgiref.sync import async_to_sync
-from .app import App, ResourceRequest
+from .app import App, AuthRequest, ResourceRequest, UserPass, AuthTokenRequest
 from ..util import setup_logging
 
 ####################################################
@@ -90,8 +64,9 @@ def post_login(
     password: Annotated[str, Form()],
     response: Response,
 ):
-    cookie = app.login(username, password)
-    logging.info("%s", f"{cookie=}")
+    userpass = UserPass(username, password)
+    cookie = app.login(userpass)
+    logging.info("post_login %s", f"{cookie=}")
     if cookie:
         response = HTMLResponse(content="OK", status_code=200)
         response.set_cookie(cookie.name, cookie.value)
@@ -100,11 +75,33 @@ def post_login(
     return response
 
 
+@api.post("/__/auth_token_request")
+def post_auth_token(
+    request: AuthTokenRequest,
+):
+    token = app.auth_token(request)
+    logging.info("post_auth_token %s", f"{token=}")
+    if token:
+        return {
+            "value": token.value,
+            "headers": {
+                "Authorization": f"Bearer {token.value}",
+            },
+        }
+    return None
+
+
 @api.get("/__/logout")
 def get_logout():
     response = HTMLResponse(content="OK", status_code=200)
     response.delete_cookie(app.auth_cookie_name)
     return response
+
+
+@api.get("/__/whoami")
+def get_whoami(request: Request):
+    username = app.authenticate(auth_request(request))
+    return HTMLResponse(content=username, status_code=200)
 
 
 ######################################
@@ -135,16 +132,21 @@ def put_resource(resource: str, request: Request):
     )
 
 
+def auth_request(request: Request) -> AuthRequest:
+    return AuthRequest(
+        request.headers.get("Authorization"),
+        request.cookies.get(app.auth_cookie_name),
+    )
+
+
 def resource_request(
     action: ActionName,
     resource: str,
     request: Request,
     func: Callable,
     body: bytes = b"",
-):
-    auth_header = request.headers.get("Authorization")
-    auth_cookie = request.cookies.get(app.auth_cookie_name)
-    req = ResourceRequest(action, resource, auth_header, auth_cookie, body)
+) -> Response:
+    req = ResourceRequest(action, resource, auth_request(request), body)
     code, headers, body = func(req)
     return Response(content=body, headers=headers, status_code=code)
 
@@ -158,13 +160,12 @@ def main(*_args, **kwargs):
         "port": 8888,
         "reload": True,
         "reload_dirs": ["lib"],
-        "reload_excludes": ["*_test.py"],
+        "reload_excludes": ["*_test.py", "*.pyi"],
     } | kwargs
     kwargs["port"] = int(kwargs["port"])
     uvicorn.run("devd.rbac.api:api", **kwargs)
 
 
 if __name__ == "__main__":
-    setup_logging(level=logging.INFO, formatter='json')
-    # logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    setup_logging(level=logging.INFO, formatter="json")
     main()

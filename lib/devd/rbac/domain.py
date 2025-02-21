@@ -1,16 +1,6 @@
 from dataclasses import dataclass, field
-from .subject import (
-    User,
-    Users,
-    Group,
-    Groups,
-    Subject,
-)
-from .credential import (
-    UserPass,
-    UserPasses,
-    Tokens,
-)
+from .subject import User, Users, Group, Groups, Subject
+from .credential import UserPass, UserPasses, Tokens
 from .rbac import Role, Roles, Membership, Memberships, Rule, Rules, Request
 from .util import find
 
