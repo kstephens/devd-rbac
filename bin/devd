@@ -1,14 +1,10 @@
-#!/usr/bin/env python
-'''
-main driver
-'''
+#!/usr/bin/env python3
 from pathlib import Path
 import sys
-argv = sys.argv.copy()
 opts = {}
-opts["prog_path"] = Path.cwd() / Path(argv[0])
+opts["prog_path"] = Path.cwd() / Path(sys.argv[0])
 opts["base_dir"] = opts["prog_path"].parent.parent
 opts["lib_dir"] = opts["base_dir"] / 'lib'
 sys.path.insert(0, str(opts["lib_dir"]))
 import devd.main
-sys.exit(devd.main.main(argv, opts))
+sys.exit(devd.main.main(sys.argv, opts))
