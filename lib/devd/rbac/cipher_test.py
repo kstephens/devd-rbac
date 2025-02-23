@@ -7,11 +7,6 @@ def test_cipher():
     data_enc_1 = cipher.encipher(data_1)
     data_dec_1 = cipher.decipher(data_enc_1)
     data_enc_2 = cipher.encipher(data_1)
-    # print(f"{data_1=}")
-    # print(f"{data_enc_1=}")
-    # print(f"{len(data_enc_1)=} bytes : {data_enc_1=}")
-    # print(f"{data_dec_1=}")
-    # print(f"{data_enc_2=}")
     assert isinstance(data_enc_1, str)
     assert len(data_enc_1) >= 72
     assert data_dec_1 == data_1, "expected round-trip"
@@ -27,12 +22,6 @@ def test_hash():
     data_hash_3 = cipher.hash(data_2)
     cipher = sut.Cipher("secret-key-2")
     data_hash_4 = cipher.hash(data_1)
-    # print(f"{data_1=}")
-    # print(f"{data_2=}")
-    # print(f"{data_hash_1=}")
-    # print(f"{data_hash_2=}")
-    # print(f"{data_hash_3=}")
-    # print(f"{data_hash_4=}")
     assert isinstance(data_hash_1, str)
     assert data_hash_2 == data_hash_1
     assert data_hash_3 != data_hash_1
